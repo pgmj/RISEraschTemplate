@@ -1,0 +1,299 @@
+---
+title: "Rasch analysis"
+subtitle: "Template file"
+title-block-banner: "#009ca6"
+title-block-banner-color: "#FFFFFF"
+author: 
+  name: Magnus Johansson
+  affiliation: RISE Research Institutes of Sweden
+  affiliation-url: https://www.ri.se/en/kbm
+  orcid: 0000-0003-1669-592X
+date: last-modified
+date-format: iso
+always_allow_html: true
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "Table of contents"
+    embed-resources: true
+    standalone: true
+    page-layout: full
+    mainfont: 'Lato'
+    monofont: 'Roboto Mono'
+    code-overflow: wrap
+    code-fold: true
+    number-sections: true
+    fig-dpi: 96
+    layout-align: left
+    linestretch: 1.6
+    theme:
+      - materia
+      - custom.scss
+    css: styles.css
+    license: CC BY
+  pdf:
+    papersize: a4
+    documentclass: report 
+execute:
+  echo: true
+  warning: false
+  message: false
+  cache: true
+editor_options: 
+  markdown: 
+    wrap: 72
+  chunk_output_type: inline
+---
+
+```{r}
+#| label: setup
+
+# one package below requires that you use devtools to install them manually:
+# first install devtools by
+# install.packages('devtools')
+
+library(RISEkbmRasch) # devtools::install_github("pgmj/RISEkbmRasch")
+library(grateful)
+library(ggrepel)
+library(car)
+library(kableExtra)
+library(readxl)
+library(tidyverse)
+library(eRm)
+library(mirt)
+library(psych)
+library(psychotree)
+library(matrixStats)
+library(reshape)
+library(knitr)
+library(cowplot)
+library(formattable) 
+library(glue)
+
+### import data
+df <- as.data.frame(read_excel("GNI23data v1.1.xls"))
+
+### Load item information
+# make sure that variable names in df match with itemlabels$itemnr
+itemlabels <- read_excel("WAAQitemlabels.xls")
+
+### Make a backup of the dataframe, in case you need to revert changes at some point
+df.all <- df
+
+### Optionally: filter participants based on missing data
+
+# If you want to include participants with missing data, input the minimum number of items responses that a participant should have to be included in the analysis:
+min.responses <- 3
+
+# Select the variables we will work with, and filter out respondents with a lot of missing data
+df <- df %>% 
+  select(starts_with("WAAQ"),Sex,Age) %>%  # variables that start with "WAAQ"
+  filter(length(itemlabels$itemnr)-rowSums(is.na(.[itemlabels$itemnr])) >= min.responses) # include only respondents with data for at least 3 items
+
+#---- OR just filter out all respondents with any missing data----
+df <- df %>% 
+  select(starts_with("WAAQ"),Sex,Age) %>% 
+  #mutate(across(where(is.character), ~ as.numeric(.x))) %>% # if data is input as characters, the need to becom numeric
+  na.omit()
+
+#---- Create DIF variables----
+  
+# DIF variables into vectors, recoded as factors since DIF functions need this
+dif.gender <- as.factor(df$Sex)
+dif.age <- as.factor(df$Age)
+# then remove them from dataframe, since we need a dataframe with only item data for the Rasch analyses
+df$Sex <- NULL
+df$Age <- NULL
+
+### label gender variable as factor
+# dif.gender <- factor(dif.gender,
+#                       levels = c(1,2,3),
+#                       labels = c("Female", "Male", "Other/missing response"))
+
+```
+
+## All items in the analysis
+```{r}
+RIlistitems(df)
+```
+
+## Demographics
+```{r}
+#| layout-ncol: 2
+RIdemographics(dif.gender, "Gender")
+
+```
+
+### Descriptives of raw data
+
+Response distribution for all items are summarized below.
+
+```{r}
+#| tbl-cap: "Total number of responses for all items"
+RIallresp(df)
+```
+
+### Descriptives - item level
+
+```{r}
+#| column: margin
+RIlistItemsMargin(df, fontsize = 12)
+```
+
+::: panel-tabset
+#### Tile plot
+```{r}
+RItileplot(df)
+```
+#### Stacked bars
+```{r}
+RIbarstack(df)
+```
+#### Barplots
+```{r}
+#| layout-ncol: 2
+RIbarplot(df)
+```
+#### Missing responses
+```{r}
+RImissing(df)
+```
+:::
+
+
+## Rasch analysis 1
+
+The eRm package, which uses Conditional Maximum Likelihood (CML)
+estimation, will be used primarily. For this analysis, the Partial
+Credit Model will be used.
+
+```{r}
+#| column: margin
+#| echo: false
+RIlistItemsMargin(df, fontsize = 13)
+```
+
+::: panel-tabset
+### Item fit
+```{r}
+RIitemfitPCM(df)
+```
+### PCA
+```{r}
+#| tbl-cap: "PCA of Rasch model residuals"
+RIpcmPCA(df)
+```
+### Residual correlations
+```{r}
+RIresidcorr(df, cutoff = 0.2)
+```
+### 1st contrast loadings
+```{r}
+RIloadLoc(df)
+```
+### Many items ICC
+```{r}
+#| include: false
+mirt.rasch <- mirt(df, model=1, itemtype='Rasch') # unidimensional Rasch model
+```
+```{r}
+plot(mirt.rasch, type="trace")
+```
+### Fewer items ICC
+```{r}
+RIitemCats(df)
+```
+
+### Targeting
+```{r}
+#| fig-height: 5
+# increase fig-height above as needed, if you have many items
+RItargeting(df)
+```
+### Item hierarchy
+```{r}
+#| fig-height: 5
+RIitemHierarchy(df)
+```
+:::
+
+## DIF-analysis
+
+### Gender
+```{r}
+#| column: margin
+#| echo: false
+RIlistItemsMargin(df, fontsize = 13)
+```
+
+::: panel-tabset
+#### Table
+```{r}
+RIdifTable(df, dif.gender)
+```
+#### Locations
+```{r}
+RIdifFigure(df, dif.gender)
+```
+#### Thresholds
+```{r}
+RIdifFigThresh(df, dif.gender)
+```
+:::
+
+## Reliability
+```{r}
+RItif(df)
+```
+
+
+
+## Item parameters
+```{r}
+RIitemparams(df)
+```
+
+## Transformation table
+
+```{r}
+RIscoreSE(df)
+```
+
+## Ordinal/interval figure
+
+```{r}
+RIscoreSE(df, output = "figure")
+```
+
+
+## Other metrics
+
+### Item location & infit ZSTD
+```{r}
+RIinfitLoc(df)
+```
+
+### Item location & outfit ZSTD
+```{r}
+RIoutfitLoc(df)
+```
+
+### Person location & infit ZSTD
+```{r}
+RIpfit(df)
+```
+
+## Software used
+```{r}
+pkgs <- cite_packages(cite.tidyverse = TRUE, 
+                      output = "table",
+                      bib.file = "grateful-refs.bib",
+                      include.RStudio = TRUE,
+                      out.dir = getwd())
+formattable(pkgs, 
+            table.attr = 'class=\"table table-striped\" style="font-size: 15px; font-family: Lato; width: 80%"')
+
+```
+
+## References

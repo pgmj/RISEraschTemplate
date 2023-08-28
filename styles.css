@@ -1,0 +1,28 @@
+div.cell-output {
+    background-color: lightblue;
+}
+
+/* css styles */
+@font-face {
+    font-family: 'Lato';
+    src: url("fonts/lato.ttf") format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Roboto Mono';
+    src: url("fonts/robotoMono.ttf") format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.quarto-title-block .quarto-title-banner {
+  background-image: url(images/RISE_Logo_mText_Neg.png);
+  background-size: 180px;
+  background-position: right;
+  background-repeat: no-repeat;
+  padding-right: 25px;
+  background-origin: content-box;
+}
+
