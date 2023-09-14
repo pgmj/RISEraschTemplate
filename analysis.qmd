@@ -71,6 +71,12 @@ library(cowplot)
 library(formattable) 
 library(glue)
 
+### some commands exist in multiple packages, here we define preferred ones that are frequently used
+select <- dplyr::select
+count <- dplyr::count
+recode <- car::recode
+rename <- dplyr::rename
+
 ### import data
 df <- as.data.frame(read_excel("GNI23data v1.1.xls"))
 
