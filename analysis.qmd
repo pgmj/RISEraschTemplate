@@ -39,7 +39,7 @@ execute:
   echo: true
   warning: false
   message: false
-  cache: true
+  cache: false
 editor_options: 
   markdown: 
     wrap: 72
@@ -70,6 +70,10 @@ library(knitr)
 library(cowplot)
 library(formattable) 
 library(glue)
+
+### optional libraries
+#library(TAM)
+#library(skimr)
 
 ### some commands exist in multiple packages, here we define preferred ones that are frequently used
 select <- dplyr::select
@@ -204,7 +208,8 @@ RIloadLoc(df)
 mirt.rasch <- mirt(df, model=1, itemtype='Rasch') # unidimensional Rasch model
 ```
 ```{r}
-plot(mirt.rasch, type="trace")
+plot(mirt.rasch, type="trace", 
+     as.table = TRUE, theta_lim = c(-6,6))
 ```
 ### Fewer items ICC
 ```{r}
