@@ -121,6 +121,8 @@ df$Age <- NULL
 #                       levels = c(1,2,3),
 #                       labels = c("Female", "Male", "Other/missing response"))
 
+# load RISE ggplot theme and color palettes and set the theme as default
+source("RISE_theme.R")
 ```
 
 ## All items in the analysis
@@ -204,12 +206,9 @@ RIloadLoc(df)
 ```
 ### Many items ICC
 ```{r}
-#| include: false
-mirt.rasch <- mirt(df, model=1, itemtype='Rasch') # unidimensional Rasch model
-```
-```{r}
-plot(mirt.rasch, type="trace", 
-     as.table = TRUE, theta_lim = c(-6,6))
+mirt(df, model=1, itemtype='Rasch', verbose = FALSE) %>% 
+  plot(type="trace", as.table = TRUE, 
+       theta_lim = c(-6,6))
 ```
 ### Fewer items ICC
 ```{r}
