@@ -67,7 +67,7 @@ library(psychotree)
 library(matrixStats)
 library(reshape)
 library(knitr)
-library(cowplot)
+library(patchwork)
 library(formattable) 
 library(glue)
 
@@ -92,6 +92,7 @@ itemlabels <- read_excel("WAAQitemlabels.xls")
 df.all <- df
 
 ### Optionally: filter participants based on missing data
+# before filtering out participants, you should check the missing data structure using RImissing() and RImissingP()
 
 # If you want to include participants with missing data, input the minimum number of items responses that a participant should have to be included in the analysis:
 min.responses <- 3
