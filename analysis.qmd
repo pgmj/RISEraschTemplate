@@ -24,6 +24,7 @@ format:
     code-overflow: wrap
     code-fold: true
     code-tools: true
+    code-link: true
     number-sections: true
     fig-dpi: 96
     layout-align: left
@@ -44,7 +45,7 @@ execute:
 editor_options: 
   markdown: 
     wrap: 72
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r}
@@ -75,6 +76,7 @@ library(glue)
 ### optional libraries
 #library(TAM)
 #library(skimr)
+#library(janitor)
 
 ### some commands exist in multiple packages, here we define preferred ones that are frequently used
 select <- dplyr::select
@@ -92,8 +94,9 @@ itemlabels <- read_excel("WAAQitemlabels.xls")
 ### Make a backup of the dataframe, in case you need to revert changes at some point
 df.all <- df
 
-### Optionally: filter participants based on missing data
-# before filtering out participants, you should check the missing data structure using RImissing() and RImissingP()
+##### Optionally: filter participants based on missing data
+#####
+##### Before filtering out participants, you should check the missing data structure using RImissing() and RImissingP()
 
 # If you want to include participants with missing data, input the minimum number of items responses that a participant should have to be included in the analysis:
 min.responses <- 3
