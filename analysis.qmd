@@ -84,18 +84,25 @@ count <- dplyr::count
 recode <- car::recode
 rename <- dplyr::rename
 
-### import data
-df <- as.data.frame(read_excel("GNI23data v1.1.xls"))
+### import data - this is just sample code, the files do not exist
+#library(readxl) # for reading excel files
+df <- read_excel("data/datafile.xls") # replace with your datafile as needed
+
+#library(haven) # for SPSS and other formats
+#library(labelled) # for getting labels and metadata from SPSS files
 
 ### Load item information
 # make sure that variable names in df match with itemlabels$itemnr
-itemlabels <- read_excel("WAAQitemlabels.xls")
+itemlabels <- read_csv("data/itemlabels.csv")
 
 ### Make a backup of the dataframe, in case you need to revert changes at some point
 df.all <- df
+```
 
+
+```{r}
 ##### Optionally: filter participants based on missing data
-#####
+
 ##### Before filtering out participants, you should check the missing data structure using RImissing() and RImissingP()
 
 # If you want to include participants with missing data, input the minimum number of items responses that a participant should have to be included in the analysis:
@@ -103,7 +110,7 @@ min.responses <- 3
 
 # Select the variables we will work with, and filter out respondents with a lot of missing data
 df <- df %>% 
-  select(starts_with("WAAQ"),Sex,Age) %>%  # variables that start with "WAAQ"
+  select(starts_with("item"),Sex,Age) %>%  # variables that start with "item", and DIF-variables Sex and Age
   filter(length(itemlabels$itemnr)-rowSums(is.na(.[itemlabels$itemnr])) >= min.responses) # include only respondents with data for at least 3 items
 
 #---- OR just filter out all respondents with any missing data----
@@ -111,10 +118,14 @@ df <- df %>%
   select(starts_with("WAAQ"),Sex,Age) %>% 
   #mutate(across(where(is.character), ~ as.numeric(.x))) %>% # if data is input as characters, the need to becom numeric
   na.omit()
+```
 
+
+```{r}
 #---- Create DIF variables----
   
 # DIF variables into vectors, recoded as factors since DIF functions need this
+# these could also be stored in its own dataframe (not a tibble) instead of as vectors
 dif.gender <- as.factor(df$Sex)
 dif.age <- as.factor(df$Age)
 # then remove them from dataframe, since we need a dataframe with only item data for the Rasch analyses
@@ -126,7 +137,8 @@ df$Age <- NULL
 #                       levels = c(1,2,3),
 #                       labels = c("Female", "Male", "Other/missing response"))
 
-# load RISE ggplot theme and color palettes and set the theme as default
+# optionally, load RISE ggplot theme and color palettes and set the theme as default.
+# just comment out the row below if you desire different theming
 source("RISE_theme.R")
 ```
 
@@ -139,7 +151,6 @@ RIlistitems(df)
 ```{r}
 #| layout-ncol: 2
 RIdemographics(dif.gender, "Gender")
-
 ```
 
 ### Descriptives of raw data
@@ -175,6 +186,7 @@ RIbarplot(df)
 #### Missing responses
 ```{r}
 RImissing(df)
+RImissingP(df)
 ```
 :::
 
@@ -233,7 +245,47 @@ RIitemHierarchy(df)
 ```
 :::
 
-## DIF-analysis
+## LRT-based DIF
+
+```{r}
+erm.out <- PCM(df)
+LRtest(erm.out, splitcr = dif.gender) 
+```
+
+Review the documentation for further details, using `?LRtest` in your R console panel in Rstudio. There is also a plotting function, `plotGOF()` that may be of interest.
+
+```{r}
+#| column: margin
+#| echo: false
+RIlistItemsMargin(df, fontsize = 13)
+```
+
+::: panel-tabset
+#### Item location table
+```{r}
+RIdifTableLR(df, dif.gender)
+
+```
+#### Item location figure
+```{r}
+#| fig-height: 7
+RIdifFigureLR(df, dif.gender)
+
+```
+#### Item threshold table
+```{r}
+RIdifThreshTblLR(df, dif.gender)
+
+```
+#### Item threshold figure
+```{r}
+#| fig-height: 7
+RIdifThreshFigLR(df, dif.gender)
+
+```
+:::
+
+## DIF-analysis 2
 
 ### Gender
 ```{r}
@@ -257,7 +309,12 @@ RIdifFigThresh(df, dif.gender)
 ```
 :::
 
-## Reliability
+### Person location & infit ZSTD
+```{r}
+RIpfit(df)
+```
+
+## Test Information (Reliability)
 ```{r}
 RItif(df)
 ```
@@ -292,11 +349,6 @@ RIinfitLoc(df)
 ### Item location & outfit ZSTD
 ```{r}
 RIoutfitLoc(df)
-```
-
-### Person location & infit ZSTD
-```{r}
-RIpfit(df)
 ```
 
 ## Software used
