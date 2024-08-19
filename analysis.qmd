@@ -63,6 +63,7 @@ library(kableExtra)
 library(readxl)
 library(tidyverse)
 library(eRm)
+library(iarm)
 library(mirt)
 library(psych)
 library(psychotree)
@@ -206,7 +207,22 @@ RIlistItemsMargin(df, fontsize = 13)
 ::: panel-tabset
 ### Item fit
 ```{r}
-RIitemfitPCM(df)
+simfit <- RIgetfit(df, iterations = 1000, cpu = 4) # save simulation output into object `simfit` (arbitrary name)
+RIitemfit(df, simcut = simfit)
+```
+### CICC
+```{r}
+ICCplot(as.data.frame(df), 
+        itemnumber = 1:4, 
+        method = "cut", 
+        itemdescrip = c("item1","item2","item3","item4"))
+
+### also suggested:
+# library(RASCHplot) # install first with `devtools::install_github("ERRTG/RASCHplot")`
+# CICCplot(PCM(df),
+#          which.item = c(1:4),
+#          lower.groups = c(0,7,14,21,28,35),
+#          grid.items = TRUE)
 ```
 ### PCA
 ```{r}
@@ -215,7 +231,8 @@ RIpcmPCA(df)
 ```
 ### Residual correlations
 ```{r}
-RIresidcorr(df, cutoff = 0.2)
+res_cor <- RIgetResidCor(df, iterations = 1000, cpu = 8)
+RIresidcorr(df, cutoff = res_cor$p99)
 ```
 ### 1st contrast loadings
 ```{r}
@@ -309,10 +326,33 @@ RIdifFigThresh(df, dif.gender)
 ```
 :::
 
-### Person location & infit ZSTD
+## Person fit
+
+::: panel-tabset
+### Infit & location
 ```{r}
 RIpfit(df)
 ```
+### U3poly
+```{r}
+library(PerFit)
+pfit_u3poly <- U3poly(matrix = df, 
+                      Ncat = 5, # make sure to input number of response categories, not thresholds
+                      IRT.PModel = "PCM")
+```
+### Cutoff information
+```{r}
+cutoff(pfit_u3poly)
+```
+### Flagged respondents
+```{r}
+flagged.resp(pfit_u3poly) %>% 
+  pluck("Scores") %>% 
+  as.data.frame() %>% 
+  arrange(desc(PFscores))
+```
+:::
+
 
 ## Test Information (Reliability)
 ```{r}
@@ -336,19 +376,6 @@ RIscoreSE(df)
 
 ```{r}
 RIscoreSE(df, output = "figure")
-```
-
-
-## Other metrics
-
-### Item location & infit ZSTD
-```{r}
-RIinfitLoc(df)
-```
-
-### Item location & outfit ZSTD
-```{r}
-RIoutfitLoc(df)
 ```
 
 ## Software used
