@@ -207,8 +207,12 @@ RIlistItemsMargin(df, fontsize = 13)
 ::: panel-tabset
 ### Item fit
 ```{r}
-simfit <- RIgetfit(df, iterations = 1000, cpu = 4) # save simulation output into object `simfit` (arbitrary name)
-RIitemfit(df, simcut = simfit)
+simfit1 <- RIgetfit(df, iterations = 500, cpu = 8) 
+
+RIitemfit(df, simfit1)
+RIgetfitPlot(simfit1, df)
+
+boot_fit(PCM(df), B = 50)
 ```
 ### CICC
 ```{r}
@@ -224,6 +228,10 @@ ICCplot(as.data.frame(df),
 #          lower.groups = c(0,7,14,21,28,35),
 #          grid.items = TRUE)
 ```
+### Item-restscore
+```{r}
+item_restscore(PCM(df))
+```
 ### PCA
 ```{r}
 #| tbl-cap: "PCA of Rasch model residuals"
@@ -231,8 +239,8 @@ RIpcmPCA(df)
 ```
 ### Residual correlations
 ```{r}
-res_cor <- RIgetResidCor(df, iterations = 1000, cpu = 8)
-RIresidcorr(df, cutoff = res_cor$p99)
+simcor1 <- RIgetResidCor(df, iterations = 500, cpu = 8)
+RIresidcorr(df, cutoff = simcor1$p99)
 ```
 ### 1st contrast loadings
 ```{r}
@@ -260,6 +268,23 @@ RItargeting(df)
 #| fig-height: 5
 RIitemHierarchy(df)
 ```
+### Score groups
+```{r}
+iarm::score_groups(as.data.frame(df)) %>% 
+  as.data.frame(nm = "score_group") %>% 
+  dplyr::count(score_group)
+
+dif_plots <- df %>% 
+  add_column(dif = iarm::score_groups(.)) %>% 
+  split(.$dif) %>% # split the data using the DIF variable
+  map(~ RItileplot(.x %>% dplyr::select(!dif)) + labs(title = .x$dif))
+dif_plots[[1]] + dif_plots[[2]]
+
+clr_tests(df, model = "PCM")
+item_obsexp(PCM(df))
+partgam_DIF(dat.items = as.data.frame(df),
+            dat.exo = score_groups(as.data.frame(df)))
+```
 :::
 
 ## LRT-based DIF
@@ -267,6 +292,7 @@ RIitemHierarchy(df)
 ```{r}
 erm.out <- PCM(df)
 LRtest(erm.out, splitcr = dif.gender) 
+clr_tests(df, dif.gender, model = "PCM")
 ```
 
 Review the documentation for further details, using `?LRtest` in your R console panel in Rstudio. There is also a plotting function, `plotGOF()` that may be of interest.
@@ -326,6 +352,13 @@ RIdifFigThresh(df, dif.gender)
 ```
 :::
 
+## DIF partial gamma
+
+```{r}
+partgam_DIF(as.data.frame(df), dif.gender)
+```
+
+
 ## Person fit
 
 ::: panel-tabset
@@ -364,6 +397,8 @@ RItif(df)
 ## Item parameters
 ```{r}
 RIitemparams(df)
+# write to CSV file
+RIitemparams(df, output = "file", filename = "itemParameters.csv")
 ```
 
 ## Transformation table
