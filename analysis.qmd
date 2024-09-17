@@ -248,17 +248,14 @@ RIresidcorr(df, cutoff = simcor1$p99)
 ```{r}
 RIloadLoc(df)
 ```
-### Many items ICC
+### Response categories
 ```{r}
 mirt(df, model=1, itemtype='Rasch', verbose = FALSE) %>% 
   plot(type="trace", as.table = TRUE, 
        theta_lim = c(-6,6))
+# for fewer items or a more magnified figure, use:
+#RIitemCats(df)
 ```
-### Fewer items ICC
-```{r}
-RIitemCats(df)
-```
-
 ### Targeting
 ```{r}
 #| fig-height: 5
