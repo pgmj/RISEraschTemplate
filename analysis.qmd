@@ -205,7 +205,7 @@ RIlistItemsMargin(df, fontsize = 13)
 ```
 
 ::: panel-tabset
-### Item fit
+### Conditional item fit
 ```{r}
 simfit1 <- RIgetfit(df, iterations = 500, cpu = 8) 
 
