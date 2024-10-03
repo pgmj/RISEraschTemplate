@@ -213,8 +213,6 @@ simfit1 <- RIgetfit(df, iterations = 500, cpu = 8)
 
 RIitemfit(df, simfit1)
 RIgetfitPlot(simfit1, df)
-
-boot_fit(PCM(df), B = 50)
 ```
 ### CICC
 ```{r}
@@ -232,7 +230,7 @@ ICCplot(as.data.frame(df),
 ```
 ### Item-restscore
 ```{r}
-item_restscore(PCM(df))
+RIrestscore(df)
 ```
 ### PCA
 ```{r}
