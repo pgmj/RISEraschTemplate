@@ -305,7 +305,6 @@ dif_plots[[1]] + dif_plots[[2]]
 
 clr_tests(df, model = "PCM")
 ```
-
 ### Score groups obs-exp
 ```{r}
 item_obsexp(PCM(df))
@@ -315,7 +314,6 @@ item_obsexp(PCM(df))
 # using partial gamma from library(iarm)
 RIpartgamDIF(df, dif.gender)
 ```
-
 :::
 
 ## LRT-based DIF
