@@ -84,7 +84,10 @@ select <- dplyr::select
 count <- dplyr::count
 recode <- car::recode
 rename <- dplyr::rename
+```
 
+
+```{r}
 ### import data - this is just sample code, the files do not exist
 #library(readxl) # for reading excel files
 df <- read_excel("data/datafile.xls") # replace with your datafile as needed
@@ -101,10 +104,27 @@ df.all <- df
 ```
 
 
+
+```{r}
+# If needed, subset a random subsample of more manageable size.
+set.seed(123)
+library(rsample)
+# subset 1/20 of the sample, stratify on year
+data_split <- initial_split(df.all, prop = 1/20, strata = year)
+# create dataframe with 1/20
+df <- training(data_split)
+# create dataframe with the remaining sample
+df_rest  <- testing(data_split)
+```
+
+
 ```{r}
 ##### Optionally: filter participants based on missing data
 
 ##### Before filtering out participants, you should check the missing data structure using RImissing() and RImissingP()
+
+RImissing(df)
+RImissingP(df)
 
 # If you want to include participants with missing data, input the minimum number of items responses that a participant should have to be included in the analysis:
 min.responses <- 3
@@ -207,7 +227,7 @@ RIlistItemsMargin(df, fontsize = 13)
 ::: panel-tabset
 ### Conditional item fit
 ```{r}
-RIitemfit(df, cutoff = "Smith98")
+#RIitemfit(df, cutoff = "Smith98")
 
 simfit1 <- RIgetfit(df, iterations = 500, cpu = 8) 
 
@@ -237,6 +257,12 @@ RIrestscore(df)
 #| tbl-cap: "PCA of Rasch model residuals"
 RIpcmPCA(df)
 ```
+### Local dependency
+```{r}
+# using partial gamma LD from library(iarm)
+RIpartgamLD(df)
+```
+
 ### Residual correlations
 ```{r}
 simcor1 <- RIgetResidCor(df, iterations = 500, cpu = 8)
@@ -265,7 +291,7 @@ RItargeting(df)
 #| fig-height: 5
 RIitemHierarchy(df)
 ```
-### Score groups
+### Score groups LR-test
 ```{r}
 iarm::score_groups(as.data.frame(df)) %>% 
   as.data.frame(nm = "score_group") %>% 
@@ -278,10 +304,18 @@ dif_plots <- df %>%
 dif_plots[[1]] + dif_plots[[2]]
 
 clr_tests(df, model = "PCM")
-item_obsexp(PCM(df))
-partgam_DIF(dat.items = as.data.frame(df),
-            dat.exo = score_groups(as.data.frame(df)))
 ```
+
+### Score groups obs-exp
+```{r}
+item_obsexp(PCM(df))
+```
+### Partial gamma DIF
+```{r}
+# using partial gamma from library(iarm)
+RIpartgamDIF(df, dif.gender)
+```
+
 :::
 
 ## LRT-based DIF
