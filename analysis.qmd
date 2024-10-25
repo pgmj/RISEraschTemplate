@@ -314,6 +314,10 @@ item_obsexp(PCM(d))
 # using partial gamma from library(iarm)
 RIpartgamDIF(d, dif.gender)
 ```
+### Person fit
+```{r}
+RIpfit(d)
+```
 :::
 
 ## LRT-based DIF
@@ -381,20 +385,10 @@ RIdifFigThresh(d, dif.gender)
 ```
 :::
 
-## DIF partial gamma
 
-```{r}
-partgam_DIF(as.data.frame(d), dif.gender)
-```
-
-
-## Person fit
+## Person fit alt.
 
 ::: panel-tabset
-### Infit & location
-```{r}
-RIpfit(d)
-```
 ### U3poly
 ```{r}
 library(PerFit)
