@@ -112,7 +112,7 @@ library(rsample)
 # subset 1/20 of the sample, stratify on year
 data_split <- initial_split(df.all, prop = 1/20, strata = year)
 # create dataframe with 1/20
-df <- training(data_split)
+d <- training(data_split)
 # create dataframe with the remaining sample
 df_rest  <- testing(data_split)
 ```
@@ -123,19 +123,19 @@ df_rest  <- testing(data_split)
 
 ##### Before filtering out participants, you should check the missing data structure using RImissing() and RImissingP()
 
-RImissing(df)
-RImissingP(df)
+RImissing(d)
+RImissingP(d)
 
 # If you want to include participants with missing data, input the minimum number of items responses that a participant should have to be included in the analysis:
 min.responses <- 3
 
 # Select the variables we will work with, and filter out respondents with a lot of missing data
-df <- df %>% 
+d <- d %>% 
   select(starts_with("item"),Sex,Age) %>%  # variables that start with "item", and DIF-variables Sex and Age
   filter(length(itemlabels$itemnr)-rowSums(is.na(.[itemlabels$itemnr])) >= min.responses) # include only respondents with data for at least 3 items
 
 #---- OR just filter out all respondents with any missing data----
-df <- df %>% 
+d <- d %>% 
   select(starts_with("WAAQ"),Sex,Age) %>% 
   #mutate(across(where(is.character), ~ as.numeric(.x))) %>% # if data is input as characters, the need to becom numeric
   na.omit()
@@ -147,11 +147,11 @@ df <- df %>%
   
 # DIF variables into vectors, recoded as factors since DIF functions need this
 # these could also be stored in its own dataframe (not a tibble) instead of as vectors
-dif.gender <- as.factor(df$Sex)
-dif.age <- as.factor(df$Age)
+dif.gender <- as.factor(d$Sex)
+dif.age <- as.factor(d$Age)
 # then remove them from dataframe, since we need a dataframe with only item data for the Rasch analyses
-df$Sex <- NULL
-df$Age <- NULL
+d$Sex <- NULL
+d$Age <- NULL
 
 ### label gender variable as factor
 # dif.gender <- factor(dif.gender,
@@ -165,7 +165,7 @@ source("RISE_theme.R")
 
 ## All items in the analysis
 ```{r}
-RIlistitems(df)
+RIlistitems(d)
 ```
 
 ## Demographics
@@ -180,34 +180,34 @@ Response distribution for all items are summarized below.
 
 ```{r}
 #| tbl-cap: "Total number of responses for all items"
-RIallresp(df)
+RIallresp(d)
 ```
 
 ### Descriptives - item level
 
 ```{r}
 #| column: margin
-RIlistItemsMargin(df, fontsize = 12)
+RIlistItemsMargin(d, fontsize = 12)
 ```
 
 ::: panel-tabset
 #### Tile plot
 ```{r}
-RItileplot(df)
+RItileplot(d)
 ```
 #### Stacked bars
 ```{r}
-RIbarstack(df)
+RIbarstack(d)
 ```
 #### Barplots
 ```{r}
 #| layout-ncol: 2
-RIbarplot(df)
+RIbarplot(d)
 ```
 #### Missing responses
 ```{r}
-RImissing(df)
-RImissingP(df)
+RImissing(d)
+RImissingP(d)
 ```
 :::
 
@@ -221,107 +221,107 @@ Credit Model will be used.
 ```{r}
 #| column: margin
 #| echo: false
-RIlistItemsMargin(df, fontsize = 13)
+RIlistItemsMargin(d, fontsize = 13)
 ```
 
 ::: panel-tabset
 ### Conditional item fit
 ```{r}
-#RIitemfit(df, cutoff = "Smith98")
+#RIitemfit(d, cutoff = "Smith98")
 
-simfit1 <- RIgetfit(df, iterations = 500, cpu = 8) 
+simfit1 <- RIgetfit(d, iterations = 500, cpu = 8) 
 
-RIitemfit(df, simfit1)
-RIgetfitPlot(simfit1, df)
+RIitemfit(d, simfit1)
+RIgetfitPlot(simfit1, d)
 ```
 ### CICC
 ```{r}
-ICCplot(as.data.frame(df), 
+ICCplot(as.data.frame(d), 
         itemnumber = 1:4, 
         method = "cut", 
         itemdescrip = c("item1","item2","item3","item4"))
 
 ### also suggested:
 # library(RASCHplot) # install first with `devtools::install_github("ERRTG/RASCHplot")`
-# CICCplot(PCM(df),
+# CICCplot(PCM(d),
 #          which.item = c(1:4),
 #          lower.groups = c(0,7,14,21,28,35),
 #          grid.items = TRUE)
 ```
 ### Item-restscore
 ```{r}
-RIrestscore(df)
+RIrestscore(d)
 ```
 ### PCA
 ```{r}
 #| tbl-cap: "PCA of Rasch model residuals"
-RIpcmPCA(df)
+RIpcmPCA(d)
 ```
 ### Local dependency
 ```{r}
 # using partial gamma LD from library(iarm)
-RIpartgamLD(df)
+RIpartgamLD(d)
 ```
 
 ### Residual correlations
 ```{r}
-simcor1 <- RIgetResidCor(df, iterations = 500, cpu = 8)
-RIresidcorr(df, cutoff = simcor1$p99)
+simcor1 <- RIgetResidCor(d, iterations = 500, cpu = 8)
+RIresidcorr(d, cutoff = simcor1$p99)
 ```
 ### 1st contrast loadings
 ```{r}
-RIloadLoc(df)
+RIloadLoc(d)
 ```
 ### Response categories
 ```{r}
-mirt(df, model=1, itemtype='Rasch', verbose = FALSE) %>% 
+mirt(d, model=1, itemtype='Rasch', verbose = FALSE) %>% 
   plot(type="trace", as.table = TRUE, 
        theta_lim = c(-6,6))
 # for fewer items or a more magnified figure, use:
-#RIitemCats(df)
+#RIitemCats(d)
 ```
 ### Targeting
 ```{r}
 #| fig-height: 5
 # increase fig-height above as needed, if you have many items
-RItargeting(df)
+RItargeting(d)
 ```
 ### Item hierarchy
 ```{r}
 #| fig-height: 5
-RIitemHierarchy(df)
+RIitemHierarchy(d)
 ```
 ### Score groups LR-test
 ```{r}
-iarm::score_groups(as.data.frame(df)) %>% 
+iarm::score_groups(as.data.frame(d)) %>% 
   as.data.frame(nm = "score_group") %>% 
   dplyr::count(score_group)
 
-dif_plots <- df %>% 
+dif_plots <- d %>% 
   add_column(dif = iarm::score_groups(.)) %>% 
   split(.$dif) %>% # split the data using the DIF variable
   map(~ RItileplot(.x %>% dplyr::select(!dif)) + labs(title = .x$dif))
 dif_plots[[1]] + dif_plots[[2]]
 
-clr_tests(df, model = "PCM")
+clr_tests(d, model = "PCM")
 ```
 ### Score groups obs-exp
 ```{r}
-item_obsexp(PCM(df))
+item_obsexp(PCM(d))
 ```
 ### Partial gamma DIF
 ```{r}
 # using partial gamma from library(iarm)
-RIpartgamDIF(df, dif.gender)
+RIpartgamDIF(d, dif.gender)
 ```
 :::
 
 ## LRT-based DIF
 
 ```{r}
-erm.out <- PCM(df)
+erm.out <- PCM(d)
 LRtest(erm.out, splitcr = dif.gender) 
-clr_tests(df, dif.gender, model = "PCM")
+clr_tests(d, dif.gender, model = "PCM")
 ```
 
 Review the documentation for further details, using `?LRtest` in your R console panel in Rstudio. There is also a plotting function, `plotGOF()` that may be of interest.
@@ -329,30 +329,30 @@ Review the documentation for further details, using `?LRtest` in your R console 
 ```{r}
 #| column: margin
 #| echo: false
-RIlistItemsMargin(df, fontsize = 13)
+RIlistItemsMargin(d, fontsize = 13)
 ```
 
 ::: panel-tabset
 #### Item location table
 ```{r}
-RIdifTableLR(df, dif.gender)
+RIdifTableLR(d, dif.gender)
 
 ```
 #### Item location figure
 ```{r}
 #| fig-height: 7
-RIdifFigureLR(df, dif.gender)
+RIdifFigureLR(d, dif.gender)
 
 ```
 #### Item threshold table
 ```{r}
-RIdifThreshTblLR(df, dif.gender)
+RIdifThreshTblLR(d, dif.gender)
 
 ```
 #### Item threshold figure
 ```{r}
 #| fig-height: 7
-RIdifThreshFigLR(df, dif.gender)
+RIdifThreshFigLR(d, dif.gender)
 
 ```
 :::
@@ -363,28 +363,28 @@ RIdifThreshFigLR(df, dif.gender)
 ```{r}
 #| column: margin
 #| echo: false
-RIlistItemsMargin(df, fontsize = 13)
+RIlistItemsMargin(d, fontsize = 13)
 ```
 
 ::: panel-tabset
 #### Table
 ```{r}
-RIdifTable(df, dif.gender)
+RIdifTable(d, dif.gender)
 ```
 #### Locations
 ```{r}
-RIdifFigure(df, dif.gender)
+RIdifFigure(d, dif.gender)
 ```
 #### Thresholds
 ```{r}
-RIdifFigThresh(df, dif.gender)
+RIdifFigThresh(d, dif.gender)
 ```
 :::
 
 ## DIF partial gamma
 
 ```{r}
-partgam_DIF(as.data.frame(df), dif.gender)
+partgam_DIF(as.data.frame(d), dif.gender)
 ```
 
 
@@ -393,12 +393,12 @@ partgam_DIF(as.data.frame(df), dif.gender)
 ::: panel-tabset
 ### Infit & location
 ```{r}
-RIpfit(df)
+RIpfit(d)
 ```
 ### U3poly
 ```{r}
 library(PerFit)
-pfit_u3poly <- U3poly(matrix = df, 
+pfit_u3poly <- U3poly(matrix = d, 
                       Ncat = 5, # make sure to input number of response categories, not thresholds
                       IRT.PModel = "PCM")
 ```
@@ -418,28 +418,28 @@ flagged.resp(pfit_u3poly) %>%
 
 ## Test Information (Reliability)
 ```{r}
-RItif(df)
+RItif(d)
 ```
 
 
 
 ## Item parameters
 ```{r}
-RIitemparams(df)
+RIitemparams(d)
 # write to CSV file
-RIitemparams(df, output = "file", filename = "itemParameters.csv")
+RIitemparams(d, output = "file", filename = "itemParameters.csv")
 ```
 
 ## Transformation table
 
 ```{r}
-RIscoreSE(df)
+RIscoreSE(d)
 ```
 
 ## Ordinal/interval figure
 
 ```{r}
-RIscoreSE(df, output = "figure")
+RIscoreSE(d, output = "figure")
 ```
 
 ## Software used
