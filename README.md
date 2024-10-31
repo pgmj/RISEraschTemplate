@@ -1,8 +1,8 @@
 ## About this repo
 
-This is a code repository intended for cloning to a local folder to make it simpler and faster to start up a new Rasch analysis project, using R, Rstudio and the [RISEkbmRasch](https://github.com/pgmj/RISEkbmRasch) package.
+This is a code repository intended for cloning to a local folder to make it simpler and faster to start up a new Rasch analysis project, using R, Rstudio and the [easyRasch](https://pgmj.github.io/easyRasch) package.
 
-You can also find a lot of useful information about using the `RISEkbmRasch` package in the [package vignette](https://pgmj.github.io/raschrvignette/RaschRvign.html).
+You can also find a lot of useful information about using the `easyRasch` package in the [package vignette](https://pgmj.github.io/raschrvignette/RaschRvign.html).
 
 ## How to use
 

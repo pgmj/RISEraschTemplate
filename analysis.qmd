@@ -55,7 +55,7 @@ editor_options:
 # first install devtools by
 # install.packages('devtools')
 
-library(RISEkbmRasch) # devtools::install_github("pgmj/RISEkbmRasch")
+library(easyRasch) # devtools::install_github("pgmj/easyRasch")
 library(grateful)
 library(ggrepel)
 library(car)
