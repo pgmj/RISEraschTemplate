@@ -226,13 +226,20 @@ RIlistItemsMargin(d, fontsize = 13)
 
 ::: panel-tabset
 ### Conditional item fit
-```{r}
-#RIitemfit(d, cutoff = "Smith98")
 
-simfit1 <- RIgetfit(d, iterations = 500, cpu = 8) 
+Adjust iterations according to sample size. Samples <= 250 should use 100, while larger samples should use 200-400.
+```{r}
+simfit1 <- RIgetfit(d, iterations = 200, cpu = 8) 
 
 RIitemfit(d, simfit1)
 RIgetfitPlot(simfit1, d)
+```
+### Item-restscore
+```{r}
+RIrestscore(d)
+
+# if you have sample size > 500, use the bootstrap version:
+#RIbootRestscore(d)
 ```
 ### CICC
 ```{r}
@@ -248,10 +255,6 @@ ICCplot(as.data.frame(d),
 #          lower.groups = c(0,7,14,21,28,35),
 #          grid.items = TRUE)
 ```
-### Item-restscore
-```{r}
-RIrestscore(d)
-```
 ### PCA
 ```{r}
 #| tbl-cap: "PCA of Rasch model residuals"
@@ -262,10 +265,9 @@ RIpcmPCA(d)
 # using partial gamma LD from library(iarm)
 RIpartgamLD(d)
 ```
-
 ### Residual correlations
 ```{r}
-simcor1 <- RIgetResidCor(d, iterations = 500, cpu = 8)
+simcor1 <- RIgetResidCor(d, iterations = 400, cpu = 8)
 RIresidcorr(d, cutoff = simcor1$p99)
 ```
 ### 1st contrast loadings
@@ -317,6 +319,11 @@ RIpartgamDIF(d, dif.gender)
 ### Person fit
 ```{r}
 RIpfit(d)
+```
+### LRT bootstrap
+```{r}
+# for large samples, n > 500
+RIbootLRT(d)
 ```
 :::
 
