@@ -238,15 +238,12 @@ RIgetfitPlot(simfit1, d)
 ```{r}
 RIrestscore(d)
 
-# if you have sample size > 500, use the bootstrap version:
+# if you have sample size > 500, you may want to use the bootstrap version. With samples > 1000, you definitely want this
 #RIbootRestscore(d)
 ```
 ### CICC
 ```{r}
-ICCplot(as.data.frame(d), 
-        itemnumber = 1:4, 
-        method = "cut", 
-        itemdescrip = c("item1","item2","item3","item4"))
+RIciccPlot(d) # + guide_area()
 
 ### also suggested:
 # library(RASCHplot) # install first with `devtools::install_github("ERRTG/RASCHplot")`
@@ -258,6 +255,7 @@ ICCplot(as.data.frame(d),
 ### PCA
 ```{r}
 #| tbl-cap: "PCA of Rasch model residuals"
+RIbootPCA(d, cpu = 8)
 RIpcmPCA(d)
 ```
 ### Local dependency
@@ -267,8 +265,8 @@ RIpartgamLD(d)
 ```
 ### Residual correlations
 ```{r}
-simcor1 <- RIgetResidCor(d, iterations = 400, cpu = 8)
-RIresidcorr(d, cutoff = simcor1$p99)
+simcor1 <- RIgetResidCor(d, iterations = 500, cpu = 8)
+RIresidcorr(d, cutoff = simcor1$p99) # you can also use p995 or p999 for percentiles 99.5 and 99.9
 ```
 ### 1st contrast loadings
 ```{r}
