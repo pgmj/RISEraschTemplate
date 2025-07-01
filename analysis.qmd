@@ -84,6 +84,9 @@ select <- dplyr::select
 count <- dplyr::count
 recode <- car::recode
 rename <- dplyr::rename
+
+# set number of CPU cores to use, defaults to available cores minus one
+cores <- parallel::detectCores() - 1
 ```
 
 
@@ -145,16 +148,16 @@ d <- d %>%
 ```{r}
 #---- Create DIF variables----
   
-# DIF variables into vectors, recoded as factors since DIF functions need this
-# these could also be stored in its own dataframe (not a tibble) instead of as vectors
-dif.gender <- as.factor(d$Sex)
-dif.age <- as.factor(d$Age)
-# then remove them from dataframe, since we need a dataframe with only item data for the Rasch analyses
+# DIF variables into a separate dataframe, recoded as factors since DIF functions need this
+dif <- data.frame(sex = as.factor(d$Sex),
+                  age <- as.factor(d$Age)
+                  )
+# then remove dif-variables from dataframe, since we need a dataframe with only item data for the Rasch analyses
 d$Sex <- NULL
 d$Age <- NULL
 
 ### label gender variable as factor
-# dif.gender <- factor(dif.gender,
+# dif$sex <- factor(dif$sex,
 #                       levels = c(1,2,3),
 #                       labels = c("Female", "Male", "Other/missing response"))
 
@@ -171,7 +174,14 @@ RIlistitems(d)
 ## Demographics
 ```{r}
 #| layout-ncol: 2
-RIdemographics(dif.gender, "Gender")
+library(gtsummary)
+library(flextable)
+tbl_summary(dif,
+            label = list(sex = "Sex",
+                         age = "Age in years")) %>%
+  as_flex_table() %>% 
+  theme_apa()
+
 ```
 
 ### Descriptives of raw data
@@ -202,12 +212,7 @@ RIbarstack(d)
 #### Barplots
 ```{r}
 #| layout-ncol: 2
-RIbarplot(d)
-```
-#### Missing responses
-```{r}
-RImissing(d)
-RImissingP(d)
+RIitemcols(d)
 ```
 :::
 
@@ -229,7 +234,7 @@ RIlistItemsMargin(d, fontsize = 13)
 
 Adjust iterations according to sample size. Samples <= 250 should use 100, while larger samples should use 200-400.
 ```{r}
-simfit1 <- RIgetfit(d, iterations = 200, cpu = 8) 
+simfit1 <- RIgetfit(d, iterations = 200, cpu = cores) 
 
 RIitemfit(d, simfit1)
 RIgetfitPlot(simfit1, d)
@@ -238,8 +243,9 @@ RIgetfitPlot(simfit1, d)
 ```{r}
 RIrestscore(d)
 
-# if you have sample size > 500, you may want to use the bootstrap version. With samples > 1000, you definitely want this
-#RIbootRestscore(d)
+# if you have sample size > 500, you may want to use the bootstrap version. With samples > 1000, you definitely want this instead of infit and item-restscore
+
+#RIbootRestscore(d, cpu = cores)
 ```
 ### CICC
 ```{r}
@@ -255,7 +261,7 @@ RIciccPlot(d) # + guide_area()
 ### PCA
 ```{r}
 #| tbl-cap: "PCA of Rasch model residuals"
-RIbootPCA(d, cpu = 8)
+#RIbootPCA(d, cpu = cores)
 RIpcmPCA(d)
 ```
 ### Local dependency
@@ -265,7 +271,7 @@ RIpartgamLD(d)
 ```
 ### Residual correlations
 ```{r}
-simcor1 <- RIgetResidCor(d, iterations = 500, cpu = 8)
+simcor1 <- RIgetResidCor(d, iterations = 500, cpu = cores)
 RIresidcorr(d, cutoff = simcor1$p99) # you can also use p995 or p999 for percentiles 99.5 and 99.9
 ```
 ### 1st contrast loadings
@@ -312,7 +318,7 @@ item_obsexp(PCM(d))
 ### Partial gamma DIF
 ```{r}
 # using partial gamma from library(iarm)
-RIpartgamDIF(d, dif.gender)
+RIpartgamDIF(d, dif$sex)
 ```
 ### Person fit
 ```{r}
@@ -329,7 +335,7 @@ RIbootLRT(d)
 
 ```{r}
 erm.out <- PCM(d)
-LRtest(erm.out, splitcr = dif.gender) 
+LRtest(erm.out, splitcr = dif$sex) 
 clr_tests(d, dif.gender, model = "PCM")
 ```
 
@@ -344,24 +350,24 @@ RIlistItemsMargin(d, fontsize = 13)
 ::: panel-tabset
 #### Item location table
 ```{r}
-RIdifTableLR(d, dif.gender)
+RIdifTableLR(d, dif$sex)
 
 ```
 #### Item location figure
 ```{r}
 #| fig-height: 7
-RIdifFigureLR(d, dif.gender)
+RIdifFigureLR(d, dif$sex)
 
 ```
 #### Item threshold table
 ```{r}
-RIdifThreshTblLR(d, dif.gender)
+RIdifThreshTblLR(d, dif$sex)
 
 ```
 #### Item threshold figure
 ```{r}
 #| fig-height: 7
-RIdifThreshFigLR(d, dif.gender)
+RIdifThreshFigLR(d, dif$sex)
 
 ```
 :::
@@ -378,15 +384,15 @@ RIlistItemsMargin(d, fontsize = 13)
 ::: panel-tabset
 #### Table
 ```{r}
-RIdifTable(d, dif.gender)
+RIdifTable(d, dif$sex)
 ```
 #### Locations
 ```{r}
-RIdifFigure(d, dif.gender)
+RIdifFigure(d, dif$sex)
 ```
 #### Thresholds
 ```{r}
-RIdifFigThresh(d, dif.gender)
+RIdifFigThresh(d, dif$sex)
 ```
 :::
 
@@ -452,5 +458,10 @@ formattable(pkgs,
             table.attr = 'class=\"table table-striped\" style="font-size: 15px; font-family: Lato; width: 80%"')
 
 ```
+
+```{r}
+sessionInfo()
+```
+
 
 ## References
