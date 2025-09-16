@@ -203,16 +203,18 @@ RIlistItemsMargin(d, fontsize = 12)
 ::: panel-tabset
 #### Tile plot
 ```{r}
+#| fig-height: 5
 RItileplot(d)
 ```
 #### Stacked bars
 ```{r}
+#| fig-height: 5
 RIbarstack(d)
 ```
 #### Barplots
 ```{r}
-#| layout-ncol: 2
-RIitemcols(d)
+#| fig-height: 5
+RIitemcols(d) # check ?RIitemcols for layout options
 ```
 :::
 
@@ -239,6 +241,15 @@ simfit1 <- RIgetfit(d, iterations = 200, cpu = cores)
 RIitemfit(d, simfit1)
 RIgetfitPlot(simfit1, d)
 ```
+
+If you get borderline misfitresults, try the k-fold to get another perspective.
+
+```{r}
+kf1 <- RIinfitKfold(d, k = 20, sim_iter = 200, sim_cpu = cores)
+RIinfitKfoldPlot(kf1)
+```
+
+
 ### Item-restscore
 ```{r}
 RIrestscore(d)
@@ -260,8 +271,9 @@ RIciccPlot(d) # + guide_area()
 ```
 ### PCA
 ```{r}
-#| tbl-cap: "PCA of Rasch model residuals"
-#RIbootPCA(d, cpu = cores)
+simpca <- RIbootPCA(d, cpu = cores)
+simpca$max
+
 RIpcmPCA(d)
 ```
 ### Local dependency
@@ -279,17 +291,19 @@ RIresidcorr(d, cutoff = simcor1$p99) # you can also use p995 or p999 for percent
 RIloadLoc(d)
 ```
 ### Response categories
+
+The `mirt` code below uses MML estimation and returns all items in one figure. `RIitemCats()` uses CML estimatino returns one figure per item (unless you choose to only look at certain items).
+
 ```{r}
 mirt(d, model=1, itemtype='Rasch', verbose = FALSE) %>% 
   plot(type="trace", as.table = TRUE, 
        theta_lim = c(-6,6))
-# for fewer items or a more magnified figure, use:
-#RIitemCats(d)
+
+RIitemCats(d)
 ```
 ### Targeting
 ```{r}
 #| fig-height: 5
-# increase fig-height above as needed, if you have many items
 RItargeting(d)
 ```
 ### Item hierarchy
@@ -299,15 +313,8 @@ RIitemHierarchy(d)
 ```
 ### Score groups LR-test
 ```{r}
-iarm::score_groups(as.data.frame(d)) %>% 
-  as.data.frame(nm = "score_group") %>% 
-  dplyr::count(score_group)
-
-dif_plots <- d %>% 
-  add_column(dif = iarm::score_groups(.)) %>% 
-  split(.$dif) %>% # split the data using the DIF variable
-  map(~ RItileplot(.x %>% dplyr::select(!dif)) + labs(title = .x$dif))
-dif_plots[[1]] + dif_plots[[2]]
+# check response distribution in groups compared
+RIdifTileplot(d, iarm::score_groups(as.data.frame(d)))
 
 clr_tests(d, model = "PCM")
 ```
@@ -317,7 +324,8 @@ item_obsexp(PCM(d))
 ```
 ### Partial gamma DIF
 ```{r}
-# using partial gamma from library(iarm)
+# check response distribution in groups compared
+RIdifTileplot(d, dif$sex)
 RIpartgamDIF(d, dif$sex)
 ```
 ### Person fit
@@ -334,6 +342,8 @@ RIbootLRT(d)
 ## LRT-based DIF
 
 ```{r}
+# check response distribution in groups compared
+RIdifTileplot(d, dif$sex)
 erm.out <- PCM(d)
 LRtest(erm.out, splitcr = dif$sex) 
 clr_tests(d, dif.gender, model = "PCM")
