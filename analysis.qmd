@@ -242,7 +242,7 @@ RIitemfit(d, simfit1)
 RIgetfitPlot(simfit1, d)
 ```
 
-If you get borderline misfitresults, try the k-fold to get another perspective.
+If you get borderline misfit results using small samples and < 400 iterations, try the k-fold to get another perspective. This is experimental, but may be interesting.
 
 ```{r}
 kf1 <- RIinfitKfold(d, k = 20, sim_iter = 200, sim_cpu = cores)
